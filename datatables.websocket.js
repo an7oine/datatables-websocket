@@ -34,13 +34,14 @@
       };
 
     // Kääri em. datafunktio siten, että oliomuotoinen data
-    // sarjallistetaan merkkijonoksi;
+    // sarjallistetaan merkkijonoksi ja tallennetaan API:in;
     // vrt. jQuery; `src/ajax.js`, funktio `ajax`.
     this.data = function (data, settings) {
       data = ajaxData(data, settings);
-      if (! data || typeof data === "string")
-        return data;
-      return $.param(data, ajax.traditional);
+      if (data && typeof data !== "string")
+        data = $.param(data, ajax.traditional);
+      settings.oAjaxData = data;
+      return data;
     };
 
     // Aseta Ajax-datapyyntöjen käsittelyfunktio.
@@ -127,7 +128,7 @@
       this.viestijono = {[data.draw]: callback};
 
       // Lähetetään pyyntödata URL-koodattuna merkkijonona.
-      this.websocket.send(this.data(data));
+      this.websocket.send(this.data(data, settings));
     }
   });
 }(jQuery));
