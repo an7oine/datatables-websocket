@@ -1,3 +1,28 @@
+/*
+ * Websocket-datayhteyden toteutus jQuery-dataTables-vimpaimeen.
+ *
+ * Käyttöönotto tehdään asettamalla datataulun asetusten arvot
+ * `ajax.type: "Websocket"` ja `ajax.url: "wss://palvelin/polku"`.
+ *
+ * Yhteys muodostetaan vain kerran kutakin datataulua kohti
+ * ja saman yhteyden kautta toteutetaan kaikki taulun tekemät
+ * datapyynnöt. Kukin palvelimelta saatu vastaus yhdistetään
+ * pyyntöön sen sisältämän `draw`-avaimen arvon perusteella.
+ *
+ * Vain viimeisin pyyntö huomioidaan, muut mahdolliset paluusanomat ohitetaan.
+ *
+ * Samoin ohitetaan paluusanomat, jotka eivät sisällä avainta `draw`.
+ *
+ * Paluusanoma, joka ei ole JSON-muodossa, aihettaa virheilmoituksen.
+ *
+ * Mahdolliset palvelimen omasta aloitteestaan lähettämät reaaliaikaiset
+ * sanomat tunnistetaan `draw`-avaimen arvosta `0`. Tällöin datataulu
+ * päivitetään automaattisesti vastaamaan annettua dataa.
+ *
+ * Mikäli Websocket-yhteys katkeaa, sen uudelleen muodostamista
+ * yritetään automaattisesti uudelleen pienellä viiveellä.
+ */
+
 (function ($) {
   // Ota laajennus käyttöön automaattisesti datataulun alustuksen yhtey-
   // dessä silloin, kun Ajax-tietolähteeksi on määritetty "Websocket".
