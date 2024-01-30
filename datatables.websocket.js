@@ -98,10 +98,9 @@
 
     yhteysAvattu: function (e) {
       // Ensimmäisellä kerralla yhteyden muodostuksen jälkeen
-      // alustetaan viestijono ja päivitetään taulun sisältö.
+      // alustetaan viestijono.
       if (this.viestijono === null) {
         this.viestijono = {};
-        this.datatable.ajax.reload();
       }
     },
 
