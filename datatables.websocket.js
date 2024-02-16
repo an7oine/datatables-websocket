@@ -50,6 +50,11 @@
     this.websocket = null;
     this.viestijono = null;
 
+    // Lippu, joka asetetaan mikäli Datatables pyytää aineistoa (vähintään
+    // kerran) ennen Websocket-yhteyden avaamista. Tällöin, yhteyden
+    // avauduttua, tehdään automaattinen `ajax.reload`-kutsu.
+    this.pyydettyEnnenAvaamista = false;
+
     // Alusta Ajax-datafunktio joko annettuna funktiona
     // tai uutena funktiona, joka yhdistää annetun, kiinteän
     // dataobjektin pyyntökohtaiseen;
@@ -101,6 +106,10 @@
       // alustetaan viestijono.
       if (this.viestijono === null) {
         this.viestijono = {};
+      }
+      if (this.pyydettyEnnenAvaamista) {
+        this.datatable.ajax.reload(null, false);
+        this.pyydettyEnnenAvaamista = false;
       }
     },
 
@@ -156,8 +165,10 @@
 
     pyynto: function (data, callback, settings) {
       // Mikäli Websocket-yhteys ei ole vielä valmis, odotetaan.
-      if (! this.viestijono)
+      if (! this.viestijono) {
+        this.pyydettyEnnenAvaamista = true;
         return;
+      }
 
       var _this = this;
       var _callback = function(data) {
@@ -217,7 +228,7 @@
           // Reaaliaikainen sanoma; tallenna ja päivitä taulu.
           // Huomaa, että `reload`-kutsu lataa tässä asetetun sanoman.
           this.reaaliaikainen_sanoma = sanoma;
-          this.datatable.ajax.reload();
+          this.datatable.ajax.reload(null, false);
           // Käytä kutakin reaaliaikaista sanomaa vain kerran.
           delete this.reaaliaikainen_sanoma;
           return;
