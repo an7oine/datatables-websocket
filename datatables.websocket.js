@@ -39,6 +39,16 @@
       settings._websocket = new DTWebsocket(settings);
   });
 
+  $(document).on("destroy.dt", function (e, settings) {
+    if (
+      e.namespace === 'dt'
+      && settings._websocket
+    ) {
+      settings._websocket.suljeYhteys();
+      delete settings._websocket;
+    }
+  });
+
   var DTWebsocket = function (settings, opts) {
     // Hae alustettava datatauluolio.
     this.datatable = new $.fn.DataTable.Api(settings);
@@ -99,6 +109,10 @@
         onerror: function (e) { _this.yhteysvirhe(e); },
         onmessage: function (e) { _this.vastaus(e); }
       });
+    },
+
+    suljeYhteys: function () {
+      this.websocket.close(1000);
     },
 
     yhteysAvattu: function (e) {
