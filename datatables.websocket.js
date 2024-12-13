@@ -60,6 +60,10 @@
     this.websocket = null;
     this.viestijono = null;
 
+    // Epäonnistuneiden WS-yhteyspyyntöjen lukumäärä.
+    // seuraava yritys tapahtuu aina edellistä pitemmällä viiveellä.
+    this._epaonnistunutYhdistaminen = 0;
+
     // Lippu, joka asetetaan mikäli Datatables pyytää aineistoa (vähintään
     // kerran) ennen Websocket-yhteyden avaamista. Tällöin, yhteyden
     // avauduttua, tehdään automaattinen `ajax.reload`-kutsu.
@@ -116,6 +120,9 @@
     },
 
     yhteysAvattu: function (e) {
+      // Aloitetaan mahdolliset uudelleenyhdistämisen yritykset alusta.
+      this._epaonnistunutYhdistaminen = 0;
+
       // Ensimmäisellä kerralla yhteyden muodostuksen jälkeen
       // alustetaan viestijono.
       if (this.viestijono === null) {
@@ -128,17 +135,26 @@
     },
 
     yhteysSuljettu: function (e) {
-      // Kun yhteys palvelimeen katkeaa, anna virheilmoitus
-      // ja yritä hetken kuluttua uudelleen.
+      // Kun yhteys palvelimeen katkeaa, anna virheilmoitus ja
+      // yritä hetken kuluttua uudelleen (vain määrätyt katkaisukoodit).
+      // Yhteyden muodostamista yritetään uudelleen korkeintaan 10 kertaa.
       if (this.viestijono) {
         var pyynto = Object.values(this.viestijono)[0];
         if (pyynto) {
           delete this.viestijono[pyynto.draw];
         }
       }
-      var _this = this;
-      if (e.code > 1001)
-        setTimeout(function () { _this.avaaYhteys(); }, 200);
+      if ([1001, 1006, 1012, 1013, 1014].includes(e.code)) {
+        if (this._epaonnistunutYhdistaminen < 10)
+          setTimeout(
+            this.avaaYhteys.bind(this),
+            200 * (++this._epaonnistunutYhdistaminen)
+          );
+        else
+          this.dtKutsu("_fnLog", [
+            this.dtSettings, 0, "Yhteys katkesi", 7
+          ]);
+      }
     },
 
     yhteysvirhe: function (e) {
